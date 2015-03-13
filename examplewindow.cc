@@ -48,7 +48,7 @@ ExampleWindow::ExampleWindow() : _app(NULL)
 	_app = new APP_DETAIL;
 	_app->tools = new DETAIL_WINDOWS;
 	_app->path = Glib::get_user_data_dir();
-
+cout << _app->path.c_str() << endl;
 	_app->path.append("/hexlab");
 	_app->app_file = _app->path + "/hexlab.prp";
 	_app->res_path = "/usr/share/hexlab";
@@ -177,9 +177,9 @@ ExampleWindow::ExampleWindow() : _app(NULL)
 		"Show Toolbar", "Toggles display of the toolbar", bTest),
 		sigc::mem_fun(*this, &ExampleWindow::on_toggle_toolbar));
 	 
-	_refToolbar =
+	/*_refToolbar =
 		Glib::RefPtr<Gtk::ToggleAction>::cast_static(
-		_refActionGroup->get_action("ShowToolbar"));
+		_refActionGroup->get_action("ShowToolbar"));*/
 
 	(_app->props->Get("inspect", 1) == 1)? bTest = true : bTest = false;
 	_refActionGroup->add(Gtk::ToggleAction::create("ShowInspector",
@@ -977,7 +977,7 @@ ExampleWindow::ErrorDlg(const Glib::ustring& msg)
 void
 ExampleWindow::on_menu_options()
 {
-	_pOptions = new OptionsDlg();
+	_pOptions = new OptionsDlg(_app->props);
 }
 
 /**

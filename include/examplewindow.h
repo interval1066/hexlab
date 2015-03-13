@@ -126,7 +126,7 @@ protected:
 	Glib::RefPtr<Gtk::ToggleAction> _refChoiceOne, _refChoiceTwo;
 
 	Glib::RefPtr<Gtk::ToggleAction> _refOffsetHex, _refOffsetDec;
-	Glib::RefPtr<Gtk::ToggleAction> _refToolbar;
+	//Glib::RefPtr<Gtk::ToggleAction> _refToolbar;
 	Glib::RefPtr<Gtk::Builder> _refBuilder;
 
 	void about_uri_cb(Gtk::AboutDialog& dialog,

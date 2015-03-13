@@ -16,7 +16,6 @@
 #include <stdexcept>
 #include <algorithm>
 #include <mutex>
-#include <fstream>
 
 enum MODE
 { PRP_WRITEONLY, PRP_READONLY, PRP_READWRITE };
@@ -24,12 +23,16 @@ enum MODE
 typedef std::unordered_map<std::string, std::string>::key_type props_key;
 typedef std::unordered_map <std::string, std::string> MAP;
 
-typedef struct
+typedef struct PROPDATA
 {
-	MAP								props;
-	std::vector<std::string>	text;
-	int								mode;
-	std::string						file;
+	MAP _props;
+#ifdef _REENTRANT
+	volatile int _mode;
+	std::mutex _proplock;
+#else
+	int _mode;
+#endif
+	std::string _file;
 } PROPDATA;
 
 #define KEY_EXCEPTION PropException("Key not found")
@@ -57,11 +60,13 @@ namespace utils
 
 	class Properties
 	{
+		std::mutex _propmutex;
 		PROPDATA _propdata;
 		void process(std::ifstream&);
-		void parse(std::string&);
 
+		void parse(std::string&);
 		std::string trim(const std::string&);
+
 		inline std::string getdir(const std::string& str)
 		{
 			size_t found;
@@ -86,32 +91,32 @@ namespace utils
 				[](char c) { return !(isalpha(c) || (c == ' ')); }) == str.end();
 		}
 
-	protected:
-		Properties();
-
 	public:
 		Properties(int);
 		Properties(const char*, int);
 		virtual ~Properties(void);
 
-		inline void SetMode(int m) { _propdata.mode = m; }
+		inline void SetMode(int m) { _propdata._mode = m; }
 		void dump(void);
 		void Write(const char*);
 
 		void OpenPropFile(const char*);
-		const std::string Get(const std::string&, const std::string&);
+		std::string Get(const std::string&, const std::string&);
 		void Set(const std::string&, const std::string&);
+
+		int Get(const std::string&, int);
+		void Set(const std::string&, int);
+		unsigned int Get(const std::string&, unsigned int);
+
+		void Set(const std::string&, unsigned int);
+		long Get(const std::string&, long);
+		void Set(const std::string&, long);
 
 		double Get(const std::string&, double);
 		void Set(const std::string&, double);
-		inline bool FileExist(const std::string& name)
-		{
-			std::ifstream file(name);
-			if(!file)    //if the file was not found, then file is 0, i.e. !file=1 or true
-				return false;    //the file was not found
-			else         //if the file was found, then file is non-0
-				return true;     //the file was found
-		}
+		float Get(const std::string&, float);
+
+		void Set(const std::string&, float);
 	};
 }
 
