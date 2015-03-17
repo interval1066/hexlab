@@ -288,7 +288,13 @@ cout << _app->path.c_str() << endl;
 		"Inverse Case", "Invert the case of the selected chars"),
 		sigc::mem_fun(*this, &ExampleWindow::on_menu_others));
 
-	_refActionGroup->add(Gtk::Action::create("ToolsMrks", "_Bookmarks"));
+	_refActionGroup->add(Gtk::Action::create("ToolsMrks", Gtk::StockID("BOOK"),  "_Bookmarks"));
+
+  	_refActionGroup->add(Gtk::Action::create("Generate",
+		Gtk::StockID("CHK"),  "_Generate Checksum...",
+		"Generate a checksum on the file in the current view"),
+		sigc::mem_fun(*this, &ExampleWindow::on_menu_others));
+
 	_refActionGroup->add(Gtk::Action::create("addmrk",
 		"_Add Bookmark", "Add a new bookmark"),
 		sigc::mem_fun(*this, &ExampleWindow::on_menu_others));
@@ -361,7 +367,8 @@ cout << _app->path.c_str() << endl;
 		"_Previous Difference", "Displays the previous comparison difference"),
 		sigc::mem_fun(*this, &ExampleWindow::on_menu_others));
 
-  	_refActionGroup->add(Gtk::Action::create("Generate", "_Generate Checksum...",
+  	_refActionGroup->add(Gtk::Action::create("Generate",
+		Gtk::StockID("CHK"),  "_Generate Checksum...",
 		"Generate a checksum on the file in the current view"),
 		sigc::mem_fun(*this, &ExampleWindow::on_menu_others));
 
@@ -816,6 +823,14 @@ ExampleWindow::add_iconset()
 	icn_path = _app->res_path;
 	icons->add(Gtk::StockID("INV"),
 		Gtk::IconSet(Gdk::Pixbuf::create_from_file(icn_path.append("/res/inv.png").c_str())));
+
+	icn_path = _app->res_path;
+	icons->add(Gtk::StockID("CHK"),
+		Gtk::IconSet(Gdk::Pixbuf::create_from_file(icn_path.append("/res/Check-icon.png").c_str())));
+
+	icn_path = _app->res_path;
+	icons->add(Gtk::StockID("BOOK"),
+		Gtk::IconSet(Gdk::Pixbuf::create_from_file(icn_path.append("/res/bookmark.png").c_str())));
 
 	icons->add_default();
 }

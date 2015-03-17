@@ -7,6 +7,7 @@ using namespace std;
 
 OptionsDlg::OptionsDlg(utils::Properties* prp)
 {
+	std::string buttonIdStr;
 	_prp = prp;
 	ExampleWindow parent;
 	_refBuilder = Gtk::Builder::create();
@@ -43,10 +44,35 @@ OptionsDlg::OptionsDlg(utils::Properties* prp)
 	_refBuilder->get_widget("checkbutton11", pCheck9);
 
 	_refBuilder->get_widget("checkbutton12", pCheck10);
+	_refBuilder->get_widget("checkbutton13", pCheck11);
+	_refBuilder->get_widget("checkbutton14", pCheck12);
+
+	_refBuilder->get_widget("checkbutton15", pCheck13);
+	_refBuilder->get_widget("button4", pOpenFrom);
+	_refBuilder->get_widget("button5", pImportFrom);
+
+	_refBuilder->get_widget("button6", pTempFiles);
+	_refBuilder->get_widget("entry3", pOpenFromPath);
+	_refBuilder->get_widget("entry4", pImportFromPath);
+
+	_refBuilder->get_widget("entry5", pTempPath);
+
 	pCancel->signal_clicked().connect(sigc::mem_fun(*this,
 		&OptionsDlg::on_cancel));
 	pOK->signal_clicked().connect(sigc::mem_fun(*this,
 		&OptionsDlg::on_OK));
+
+	pCheck11->signal_clicked().connect(sigc::mem_fun(*this,
+		&OptionsDlg::on_loadfrom_clicked));
+
+	pImportFrom->signal_clicked().connect(sigc::mem_fun(*this,
+		&OptionsDlg::on_select_importfrom));
+
+	pOpenFrom->signal_clicked().connect(sigc::mem_fun(*this,
+		&OptionsDlg::on_select_openfrom));
+
+	pTempFiles->signal_clicked().connect(sigc::mem_fun(*this,
+		&OptionsDlg::on_select_tempfiles));
 
 	Init_Ctrls();
 	pDialog->run();
@@ -81,10 +107,10 @@ OptionsDlg::Init_Ctrls()
 	pFloat->set_text(_prp->Get("float", "8").c_str());
 	pDouble->set_text(_prp->Get("double", "8").c_str());
 
-	(_prp->Get("add_naut", "0").find("1") != string::npos) ?
+	(_prp->Get("addnaut", "0").find("1") != string::npos) ?
 		pCheck6->set_active(true) : pCheck6->set_active(false);
 
-	(_prp->Get("add_thun", "0").find("1") != string::npos) ?
+	(_prp->Get("addthun", "0").find("1") != string::npos) ?
 		pCheck7->set_active(true) : pCheck7->set_active(false);
 
 	(_prp->Get("multiple", "0").find("1") != string::npos) ?
@@ -95,6 +121,17 @@ OptionsDlg::Init_Ctrls()
 
 	(_prp->Get("postpone", "0").find("1") != string::npos) ?
 		pCheck10->set_active(true) : pCheck10->set_active(false);
+
+	(_prp->Get("openfrom", "0").find("1") != string::npos) ?
+		pCheck11->set_active(true) : pCheck11->set_active(false);
+
+	(_prp->Get("importfrom", "0").find("1") != string::npos) ?
+		pCheck12->set_active(true) : pCheck12->set_active(false);
+
+	pOpenFromPath->set_text(_prp->Get("openpath", "").c_str());
+	pImportFromPath->set_text(_prp->Get("importfilespath", "").c_str());
+	pTempPath->set_text(_prp->Get("tempfilespath", "").c_str());
+
 }
 
 void
@@ -112,12 +149,21 @@ OptionsDlg::on_OK()
 	_prp->Set("float", pFloat->get_text());
 	_prp->Set("double", pDouble->get_text());
 
-	_prp->Set("add_naut", pCheck6->get_active() ? "1" : "0");
-	_prp->Set("add_thun", pCheck7->get_active() ? "1" : "0");
+	_prp->Set("addnaut", pCheck6->get_active() ? "1" : "0");
+	_prp->Set("addthun", pCheck7->get_active() ? "1" : "0");
 	_prp->Set("multiple", pCheck8->get_active() ? "1" : "0");
 
 	_prp->Set("direct", pCheck9->get_active() ? "1" : "0");
 	_prp->Set("postpone", pCheck10->get_active() ? "1" : "0");
+	_prp->Set("openfrom", pCheck11->get_active() ? "1" : "0");
+
+	_prp->Set("importfrom", pCheck12->get_active() ? "1" : "0");
+	_prp->Set("tempfiles", pCheck13->get_active() ? "1" : "0");
+
+	_prp->Set("openpath", pOpenFromPath->get_text());
+	_prp->Set("importfilespath", pImportFromPath->get_text());
+	_prp->Set("tempfilespath", pTempPath->get_text());
+
 	pDialog->hide();
 }
 
@@ -125,5 +171,85 @@ void
 OptionsDlg::on_cancel()
 {
 	pDialog->hide();
+}
+
+void
+OptionsDlg::on_loadfrom_clicked()
+{
+	Gtk::FileChooserDialog dialog("Please choose a folder",
+		Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER);
+
+	dialog.add_button("_Cancel", Gtk::RESPONSE_CANCEL);
+	dialog.add_button("Select", Gtk::RESPONSE_OK);
+
+	int result = dialog.run();
+	switch(result) {
+		case(Gtk::RESPONSE_OK):
+      	pOpenFromPath->set_text(dialog.get_filename().c_str());
+			break;
+
+		default:
+			break;
+    }
+}
+
+void
+OptionsDlg::on_select_importfrom()
+{
+	Gtk::FileChooserDialog dialog("Please choose a folder",
+		Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER);
+
+	dialog.add_button("_Cancel", Gtk::RESPONSE_CANCEL);
+	dialog.add_button("Select", Gtk::RESPONSE_OK);
+
+	int result = dialog.run();
+	switch(result) {
+		case(Gtk::RESPONSE_OK):
+      	pImportFromPath->set_text(dialog.get_filename().c_str());
+			break;
+
+		default:
+			break;
+    }
+}
+
+void
+OptionsDlg::on_select_openfrom()
+{
+	Gtk::FileChooserDialog dialog("Please choose a folder",
+		Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER);
+
+	dialog.add_button("_Cancel", Gtk::RESPONSE_CANCEL);
+	dialog.add_button("Select", Gtk::RESPONSE_OK);
+
+	int result = dialog.run();
+	switch(result) {
+		case(Gtk::RESPONSE_OK):
+      	pOpenFromPath->set_text(dialog.get_filename().c_str());
+			break;
+
+		default:
+			break;
+    }
+}
+
+void
+OptionsDlg::on_select_tempfiles()
+{
+	Gtk::FileChooserDialog dialog("Please choose a folder",
+		Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER);
+
+	dialog.add_button("_Cancel", Gtk::RESPONSE_CANCEL);
+	dialog.add_button("Select", Gtk::RESPONSE_OK);
+
+	int result = dialog.run();
+	switch(result) {
+		case(Gtk::RESPONSE_OK):
+      	pTempPath->set_text(dialog.get_filename().c_str());
+			break;
+
+		default:
+			break;
+    }
 }
 
