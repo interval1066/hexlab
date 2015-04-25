@@ -100,6 +100,7 @@ class ExampleWindow : public Gtk::Window
 		int, int, const Gtk::SelectionData&, guint, guint);
 
 	bool is_directory(const Glib::ustring&);
+	void on_clear_menu_tip(void);
 
 public:
 	ExampleWindow();
@@ -166,7 +167,7 @@ protected:
 
 	virtual void on_menu_options(void);
 	virtual void menuitem_focus_cb(const Glib::RefPtr<Gtk::Action>& action);
-	std::vector<std::string> _vAuth;
+	std::vector<Glib::ustring> _vAuth;
 
 	virtual void setup_statusbar_tooltip(const Glib::RefPtr<Gtk::Action>& action,
 		Gtk::Widget* widget);
@@ -177,7 +178,7 @@ protected:
 
 	virtual void manage_mru(const Glib::ustring&);
 	virtual void on_mru(const Glib::ustring&);
-	virtual void on_page_focus(GtkNotebookPage*, guint);
+	virtual void on_page_focus(Gtk::Widget*, guint);
 
 	virtual bool show_page(const Glib::ustring&);
 	virtual void on_mru_list(Glib::ustring&);

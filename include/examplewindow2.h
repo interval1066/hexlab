@@ -1,4 +1,4 @@
-//$Id: messageslist.h 705 2006-07-19 02:55:32Z jjongsma $ -*- c++ -*-
+//$Id: examplewindow.h 810 2007-03-30 10:10:25Z murrayc $ -*- c++ -*-
 
 /* gtkmm example Copyright (C) 2002 gtkmm development team
  *
@@ -16,33 +16,28 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef GTKMM_EXAMPLE_MESSAGESLIST_H
-#define GTKMM_EXAMPLE_MESSAGESLIST_H
+#ifndef GTKMM_EXAMPLEWINDOW2_H
+#define GTKMM_EXAMPLEWINDOW2_H
 
 #include <gtkmm.h>
 
-class MessagesList: public Gtk::ScrolledWindow
+class ExampleWindow2 : public Gtk::Window
 {
 public:
-  MessagesList();
-  virtual ~MessagesList();
-
-  class ModelColumns : public Gtk::TreeModel::ColumnRecord
-  {
-  public:
-
-    ModelColumns()
-    { add(m_col_text); }
-
-    Gtk::TreeModelColumn<Glib::ustring> m_col_text;
-  };
-
-  ModelColumns m_Columns;
+  ExampleWindow2();
+  virtual ~ExampleWindow2();
 
 protected:
-  Glib::RefPtr<Gtk::ListStore> m_refListStore; //The Tree Model.
-  Gtk::TreeView m_TreeView; //The Tree View.
+  //Signal handlers:
+  virtual void on_notebook_switch_page(GtkWidget* page, guint page_num);
+
+  //Child widgets:
+  Gtk::VBox m_VBox;
+  Gtk::Notebook m_Notebook;
+  Gtk::Label m_Label1, m_Label2, m_Label3, m_Label4;
+
+  Gtk::HButtonBox m_ButtonBox;
+  Gtk::Button m_Button_Quit;
 };
 
-#endif //GTKMM_EXAMPLE_MESSAGESLIST_H
-
+#endif //GTKMM_EXAMPLEWINDOW_H

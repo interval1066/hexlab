@@ -4,8 +4,8 @@ rfilelist=$(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rfilelist,$d/,$2))
 TARGET				= hexlab
 CXX 					= clang++
 # C++ compiler flags
-CXXFLAGS				+= -Wall -std=c++11 -Wno-mismatched-tags -Wno-deprecated-register -c $(shell pkg-config --cflags gtkmm-2.4 sigc++-2.0)
-LIBS					+= $(shell pkg-config --libs gtkmm-2.4 sigc++-2.0)
+CXXFLAGS				+= -Wall -std=c++11 -Wno-mismatched-tags -Wno-deprecated-register -c $(shell pkg-config --cflags gtkmm-3.0 sigc++-2.0)
+LIBS					+= $(shell pkg-config --libs gtkmm-3.0 sigc++-2.0)
 EXT					= cc
 # source files
 SRCS     			:= $(call rfilelist,./,*.$(EXT))
@@ -35,7 +35,7 @@ all: debug
 # debug build
 debug: $(DEBUG_HELPERS)
 	test -s $@ || mkdir $@
-	$(CXX) $(OBJS) -o debug/$(TARGET) $(LIBS) 
+	$(CXX) $(OBJS) -o $@/$(TARGET) $(LIBS) 
 	rm -f *.debug
 
 # optimized build

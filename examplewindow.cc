@@ -16,6 +16,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+#include <gtkmm.h>
 #include <iostream>
 #include <fstream>
 #include <memory>
@@ -23,11 +24,8 @@
 #include <cmath>
 #include <cstring>
 #include <dirent.h>
-#include <gdkmm/screen.h>
-#include <gtkmm/filechooser.h>
 #include <utils/properties.h>
 #include <glibmm/ustring.h>
-#include <gtk/gtk.h>
 #include <glibmm/refptr.h>
 #include <giomm/file.h>
 #include <ui.inc>
@@ -48,7 +46,9 @@ ExampleWindow::ExampleWindow() : _app(NULL)
 	_app = new APP_DETAIL;
 	_app->tools = new DETAIL_WINDOWS;
 	_app->path = Glib::get_user_data_dir();
-cout << _app->path.c_str() << endl;
+#ifdef _DEBUG
+	g_print("%s", _app->path.c_str());
+#endif
 	_app->path.append("/hexlab");
 	_app->app_file = _app->path + "/hexlab.prp";
 	_app->res_path = "/usr/share/hexlab";
@@ -484,10 +484,10 @@ cout << _app->path.c_str() << endl;
 		&ExampleWindow::on_page_focus));
 
 	read_mru();
-	list<Gtk::TargetEntry> listTargets;
+	vector<Gtk::TargetEntry> listTargets;
 	listTargets.push_back(Gtk::TargetEntry("text/uri-list"));
 
-	drag_dest_set(listTargets, Gtk::DEST_DEFAULT_MOTION | Gtk::DEST_DEFAULT_DROP, Gdk::ACTION_COPY | Gdk::ACTION_MOVE);
+	drag_dest_set(listTargets);
 	signal_drag_data_received().connect(sigc::mem_fun(*this, &ExampleWindow::on_dropped_file));
 }
 
@@ -513,6 +513,7 @@ ExampleWindow::~ExampleWindow()
 		delete _app;
 		_app = NULL;
 	}
+	return;
 }
 
 void
@@ -650,18 +651,21 @@ ExampleWindow::on_menu_choices_two()
 
 void
 ExampleWindow::setup_statusbar_tooltip(
-	const Glib::RefPtr<Gtk::Action> &action, Gtk::Widget *widget)
+	const Glib::RefPtr<Gtk::Action>& action, Gtk::Widget* widget)
 {
-	Gtk::Item *item = dynamic_cast<Gtk::Item*>(widget);
-	if(item) {
-		item->signal_select().connect(
-			sigc::bind(sigc::mem_fun(*this,
-			&ExampleWindow::menuitem_focus_cb), action));
-		  
-		item->signal_deselect().connect(
-			sigc::bind(sigc::mem_fun(_statusbar, &Gtk::Statusbar::pop),
-			guint(STATUSBAR_MENU_TIP)));
+	if(dynamic_cast<Gtk::Widget*>(widget)) {
+		(static_cast<Gtk::MenuItem*>(widget))->signal_select().connect(
+			sigc::bind(sigc::mem_fun(*this, &ExampleWindow::menuitem_focus_cb), action));
+
+		(static_cast<Gtk::MenuItem*>(widget))->signal_deselect().connect(
+			sigc::mem_fun(*this, &ExampleWindow::on_clear_menu_tip));
 	}
+}
+
+void
+ExampleWindow::on_clear_menu_tip()
+{
+	_statusbar.pop();
 }
 
 void
@@ -695,10 +699,8 @@ ExampleWindow::on_app_about()
 		pDerived->set_logo(Gdk::Pixbuf::create_from_file(_app->res_path +
 		    "/res/labicn.png"));
 
-		pDerived->set_copyright("Copyright © 2013 Tim O'Neil");
+		pDerived->set_copyright("Copyright © 2013-15 Tim O'Neil");
 		pDerived->set_comments("Based on Hex Workshop by BreakPoint Software");
-		pDerived->set_url_hook(sigc::mem_fun(*this,
-		    &ExampleWindow::about_uri_cb));
 		    
 		pDerived->set_website("http://www.bpsoft.com/");
 		pDerived->set_website_label("BreakPoint Software Website");
@@ -815,8 +817,9 @@ ExampleWindow::add_iconset()
 {
 	Glib::RefPtr<Gtk::IconFactory> icons =
 		Gtk::IconFactory::create();
+	icons->add_default();
 
-	Glib::ustring icn_path = _app->res_path;
+	/*Glib::ustring icn_path = _app->res_path;
 	icons->add(Gtk::StockID("FLIP"),
 		Gtk::IconSet(Gdk::Pixbuf::create_from_file(icn_path.append("/res/flip.png").c_str())));
 
@@ -830,9 +833,7 @@ ExampleWindow::add_iconset()
 
 	icn_path = _app->res_path;
 	icons->add(Gtk::StockID("BOOK"),
-		Gtk::IconSet(Gdk::Pixbuf::create_from_file(icn_path.append("/res/bookmark.png").c_str())));
-
-	icons->add_default();
+		Gtk::IconSet(Gdk::Pixbuf::create_from_file(icn_path.append("/res/bookmark.png").c_str())));*/
 }
 
 void
@@ -895,17 +896,17 @@ ExampleWindow::on_file_open()
 
 	dialog.add_button(Gtk::Stock::OPEN, Gtk::RESPONSE_APPLY);
 	dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
-	Gtk::FileFilter filter_any;
+	Glib::RefPtr<Gtk::FileFilter> filter_any = Gtk::FileFilter::create();
 
-	filter_any.set_name("Any files");
-	filter_any.add_pattern("*");
+	filter_any->set_name("Any files");
+	filter_any->add_pattern("*");
 	dialog.add_filter(filter_any);
 
 	dialog.set_select_multiple(true);
 	if(dialog.run() == Gtk::RESPONSE_APPLY) {
-		list<string> files(dialog.get_filenames());
+		vector<string> files(dialog.get_filenames());
 
-		for(list<string>::iterator it = files.begin(); 
+		for(vector<string>::iterator it = files.begin(); 
 			it != files.end(); ++it) {
 			HEXFILE* p = new HEXFILE;
 
@@ -925,8 +926,7 @@ ExampleWindow::add_file(const Glib::ustring& text)
 		Gtk::Label* pLabel;
 
 		pLabel = manage(new Gtk::Label(text));
-		_Notebook.pages().push_back(
-			Gtk::Notebook_Helpers::TabElem(*pLabel, sLab));
+		_Notebook.append_page(*pLabel, sLab);
 
 		_Notebook.show_all();
 		_Notebook.set_current_page(-1);
@@ -1102,7 +1102,7 @@ ExampleWindow::on_mru_list(Glib::ustring& label)
 bool
 ExampleWindow::show_page(const Glib::ustring& text)
 {
-	Gtk::Notebook_Helpers::PageList::iterator i;
+	//Gtk::Notebook::pages::iterator i;
 	int last_page = _Notebook.get_n_pages();
 	for(int i = 0; i != last_page; i++) {
 
@@ -1120,7 +1120,7 @@ ExampleWindow::show_page(const Glib::ustring& text)
 
 // This is for getting the file name from the tab to display in the main frame.
 void
-ExampleWindow::on_page_focus(GtkNotebookPage* page, guint page_num)
+ExampleWindow::on_page_focus(Gtk::Widget* page, guint page_num)
 {
 	set_tab(page_num);
 }
