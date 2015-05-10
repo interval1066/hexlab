@@ -127,13 +127,15 @@ protected:
 	Glib::RefPtr<Gtk::ToggleAction> _refChoiceOne, _refChoiceTwo;
 
 	Glib::RefPtr<Gtk::ToggleAction> _refOffsetHex, _refOffsetDec;
-	//Glib::RefPtr<Gtk::ToggleAction> _refToolbar;
 	Glib::RefPtr<Gtk::Builder> _refBuilder;
 
 	void about_uri_cb(Gtk::AboutDialog& dialog,
 		const Glib::ustring& link);
 
-	Gtk::Statusbar _statusbar;
+	Gtk::Statusbar _statusbar, _statusbar2, _statusbar3, _statusbar4;
+	Gtk::Fixed _fixed;
+	Gtk::AspectFrame _frame;
+	Gtk::Alignment _align, _align2;
 	Gtk::VPaned _VPaned;
 	Gtk::HPaned _HPaned;
 	 
@@ -143,7 +145,10 @@ protected:
 	 
 	MessageText3 _MessageText3;
 	Gtk::Label _Label1, _Label2;
-	Gtk::VBox _Box;
+	Gtk::VBox _Box, _space;
+
+	Gtk::AspectFrame _aspect_frame;
+	Gtk::HBox _SBox;
 
 	virtual void on_menu_file_new_generic(void);
 	virtual void on_menu_file_quit(void);

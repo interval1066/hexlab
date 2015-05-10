@@ -463,7 +463,16 @@ ExampleWindow::ExampleWindow() : _app(NULL)
 
 	_Box.pack_start(_VPaned);
 	_Box.pack_start(_HPaned);
-	_Box.pack_start(_statusbar, Gtk::PACK_SHRINK);
+	_SBox.pack_start(_align);
+	//_SBox.pack_start(_statusbar, Gtk::PACK_EXPAND_WIDGET);
+	_align.add(_statusbar);
+	_align.set(Gtk::ALIGN_START, Gtk::ALIGN_CENTER, 2.0, 1.0);
+
+	_SBox.pack_start(_align2);
+	_align2.add(_statusbar2);
+	_align2.set(Gtk::ALIGN_START, Gtk::ALIGN_CENTER, 1.0, 1.0);
+	//_SBox.pack_start(_space, Gtk::PACK_EXPAND_WIDGET);
+	_Box.pack_start(_SBox, Gtk::PACK_SHRINK);
 
 	show_all_children();
 	init_window_state();
