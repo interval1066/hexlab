@@ -45,6 +45,7 @@ ExampleWindow::ExampleWindow() : _app(nullptr)
 	set_border_width(1);
 	add_iconset();
 
+	cout << _app->path.c_str() << endl;
 	Glib::RefPtr<Gtk::Builder> _refBuilder = Gtk::Builder::create();
 	_refActionGroup = Gtk::ActionGroup::create();
 	_refActionGroup->add(Gtk::Action::create("FileMenu", "_File"));
