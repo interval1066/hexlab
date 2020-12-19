@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="hexlab" />
+		<Option makefile_is_custom="1" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="debug">
+				<Option platforms="Unix;" />
+				<Option output="debug/hexlab" prefix_auto="1" extension_auto="1" />
+				<Option object_output="debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+				<Environment>
+					<Variable name="_DEBUG" value="" />
+				</Environment>
+				<MakeCommands>
+					<Build command="$make -f $makefile $target" />
+					<CompileFile command="$make -f $makefile $file" />
+					<Clean command="$make -f $makefile $target" />
+					<DistClean command="$make -f $makefile distclean$target" />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="optim">
+				<Option output="optim/hexlab" prefix_auto="1" extension_auto="1" />
+				<Option object_output="optim/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+		</Compiler>
+		<Unit filename="include/config/conclient.h" />
+		<Unit filename="include/core/hexdump.h" />
+		<Unit filename="include/core/singleton.h" />
+		<Unit filename="include/defines.h" />
+		<Unit filename="include/examplewindow.h" />
+		<Unit filename="include/examplewindow2.h" />
+		<Unit filename="include/hexfileview.h" />
+		<Unit filename="include/mainmenu.h" />
+		<Unit filename="include/messageslist.h" />
+		<Unit filename="include/messagetext.h" />
+		<Unit filename="include/messagetext2.h" />
+		<Unit filename="include/messagetext3.h" />
+		<Unit filename="include/optionsdlg.h" />
+		<Unit filename="include/project/project.h" />
+		<Unit filename="include/ui/actionmgr.h" />
+		<Unit filename="include/ui/hexactionmgr.h" />
+		<Unit filename="include/ui/hexlabstatusbar.h" />
+		<Unit filename="include/ui/hextextiter.h" />
+		<Unit filename="include/ui/hextextview.h" />
+		<Unit filename="include/ui/widget_fac.h" />
+		<Unit filename="include/utils/properties.h" />
+		<Unit filename="src/examplewindow.cc" />
+		<Unit filename="src/examplewindow2.cc" />
+		<Unit filename="src/hexlabstatusbar.cc" />
+		<Unit filename="src/hextextiter.cc" />
+		<Unit filename="src/hextextview.cc" />
+		<Unit filename="src/main.cc" />
+		<Unit filename="src/messageslist.cc" />
+		<Unit filename="src/messagetext.cc" />
+		<Unit filename="src/messagetext2.cc" />
+		<Unit filename="src/messagetext3.cc" />
+		<Unit filename="src/optionsdlg.cc" />
+		<Unit filename="src/properties.cc" />
+		<Extensions>
+			<debugger>
+				<search_path add="/home/bwana/Development/Codeblocks/hexlab/" />
+			</debugger>
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

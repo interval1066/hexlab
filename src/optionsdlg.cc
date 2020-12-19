@@ -85,52 +85,58 @@ OptionsDlg::~OptionsDlg()
 void
 OptionsDlg::Init_Ctrls()
 {
-	(_prp->Get("backups", "0").find("1") != string::npos) ?
+	(static_cast<bool>(_prp->Get("backups", "0"))) ?
 		pChkBakup->set_active(true) : pChkBakup->set_active(false);
 
-	(_prp->Get("confirm", "0").find("1") != string::npos) ?
+	(static_cast<bool>(_prp->Get("confirm", "0"))) ?
 		pCheck->set_active(true) : pCheck->set_active(false);
 
-	(_prp->Get("noto", "0").find("1") != string::npos) ?
+	(static_cast<bool>(_prp->Get("noto", "0"))) ?
 		pCheck2->set_active(true) : pCheck2->set_active(false);
 
-	(_prp->Get("env", "0").find("1") != string::npos) ?
+	(static_cast<bool>(_prp->Get("env", "0"))) ?
 		pCheck3->set_active(true) : pCheck3->set_active(false);
 
-	(_prp->Get("max", "0").find("1") != string::npos) ?
+	(static_cast<bool>(_prp->Get("max", "0"))) ?
 		pCheck4->set_active(true) : pCheck4->set_active(false);
 
-	(_prp->Get("workbook", "0").find("1") != string::npos) ?
+	(static_cast<bool>(_prp->Get("workbook", "0"))) ?
 		pCheck5->set_active(true) : pCheck5->set_active(false);
 
-	pBufsize->set_text(_prp->Get("bufsize", "128").c_str());
-	pFloat->set_text(_prp->Get("float", "8").c_str());
-	pDouble->set_text(_prp->Get("double", "8").c_str());
+    string plah = _prp->Get("bufsize", "128");
+	pBufsize->set_text(plah);
+	string plah2 = _prp->Get("float", "8");
+	pFloat->set_text(plah2);
+	string plah3 = _prp->Get("double", "8");
+	pDouble->set_text(plah3);
 
-	(_prp->Get("addnaut", "0").find("1") != string::npos) ?
+	(static_cast<bool>(_prp->Get("addnaut", "0"))) ?
 		pCheck6->set_active(true) : pCheck6->set_active(false);
 
-	(_prp->Get("addthun", "0").find("1") != string::npos) ?
+	(static_cast<bool>(_prp->Get("addthun", "0"))) ?
 		pCheck7->set_active(true) : pCheck7->set_active(false);
 
-	(_prp->Get("multiple", "0").find("1") != string::npos) ?
+	(static_cast<bool>(_prp->Get("multiple", "0"))) ?
 		pCheck8->set_active(true) : pCheck8->set_active(false);
 
-	(_prp->Get("direct", "0").find("1") != string::npos) ?
+	(static_cast<bool>(_prp->Get("direct", "0"))) ?
 		pCheck9->set_active(true) : pCheck9->set_active(false);
 
-	(_prp->Get("postpone", "0").find("1") != string::npos) ?
+	(static_cast<bool>(_prp->Get("postpone", "0"))) ?
 		pCheck10->set_active(true) : pCheck10->set_active(false);
 
-	(_prp->Get("openfrom", "0").find("1") != string::npos) ?
+	(static_cast<bool>(_prp->Get("openfrom", "0"))) ?
 		pCheck11->set_active(true) : pCheck11->set_active(false);
 
-	(_prp->Get("importfrom", "0").find("1") != string::npos) ?
+	(static_cast<bool>(_prp->Get("importfrom", "0"))) ?
 		pCheck12->set_active(true) : pCheck12->set_active(false);
 
-	pOpenFromPath->set_text(_prp->Get("openpath", "").c_str());
-	pImportFromPath->set_text(_prp->Get("importfilespath", "").c_str());
-	pTempPath->set_text(_prp->Get("tempfilespath", "").c_str());
+    string plah4 = _prp->Get("openpath", "");
+	pOpenFromPath->set_text(plah4);
+	string plah5 = _prp->Get("importfilespath", "");
+	pImportFromPath->set_text(plah5);
+	string plah6 = _prp->Get("tempfilespath", "");
+	pTempPath->set_text(plah6);
 
 }
 

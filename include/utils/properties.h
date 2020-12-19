@@ -1,21 +1,16 @@
-#ifndef PROPERTIES_H
-#define PROPERTIES_H
+#ifndef PROPERTIES_H_
+#define PROPERTIES_H_
 
-/**
- * Properties
- *
- * Simple properties object for GCC/Linux
- *
- * (c) 2014 MatterFab, Inc.
- * @author <tim@matterfab.com>
- *
- */
+#if __cplusplus <= 199711L
+#error This code needs at least a C++11 compliant compiler
+#endif
 
 #include <unordered_map>
 #include <string>
 #include <stdexcept>
 #include <algorithm>
 #include <mutex>
+#include <sstream>
 
 enum MODE
 { PRP_WRITEONLY, PRP_READONLY, PRP_READWRITE };
@@ -27,24 +22,25 @@ typedef struct PROPDATA
 {
 	MAP _props;
 #ifdef _REENTRANT
-	volatile int _mode;
 	std::mutex _proplock;
-#else
-	int _mode;
 #endif
+	int _mode;
 	std::string _file;
 } PROPDATA;
 
-#define KEY_EXCEPTION PropException("Key not found")
-#define FILE_EXCEPTION PropException("Properties file not found")
-#define NAME_EXCEPTION PropException("No properties file name")
-#define WRITE_EXCEPTION PropException("Couldn\'t write properties file")
-#define BADKEY_EXCEPTION PropException("Key malformed")
-#define NOKEY_EXCEPTION PropException("Key doesn\'t exist");
-#define BADMODE_EXCEPTION PropException("Can\'t open a new file for read-only")
-#define READONLY_EXCEPTION PropException("Mode read-only")
-#define WRITEONLY_EXCEPTION PropException("Mode write-only")
-#define STRINGVALUE_EXCEPTION PropException("Can\'t return a numeric value");
+#define KEY_EXCEPTION utils::PropException("Key not found")
+#define FILE_EXCEPTION utils::PropException("Properties file not found")
+#define NAME_EXCEPTION utils::PropException("No properties file name")
+#define NULLPTR_EXCEPTION utils::PropException("Memory allocation error")
+#define WRITE_EXCEPTION utils::PropException("Couldn\'t write properties file")
+#define BADKEY_EXCEPTION utils::PropException("Key malformed")
+#define NOKEY_EXCEPTION utils::PropException("Key doesn\'t exist");
+#define BADMODE_EXCEPTION utils::PropException("Can\'t open a new file for read-only")
+#define READONLY_EXCEPTION utils::PropException("Mode read-only")
+#define WRITEONLY_EXCEPTION utils::PropException("Mode write-only")
+#define STRINGVALUE_EXCEPTION utils::PropException("Can\'t return a numeric value")
+#define CONVERSION_EXCEPTION utils::PropException("Conversion failed")
+#define INSTANTIATION_EXCEPTION utils::PropException("Object already instantiated")
 
 namespace utils
 {
@@ -56,6 +52,23 @@ namespace utils
 		PropException(const std::string& m) : std::runtime_error(m), _msg(m) {}
 		~PropException() throw() {}
 		const char* what() const throw() { return _msg.c_str(); }
+	};
+
+	struct Value
+	{
+		std::string _value;
+
+		template<typename T>
+		operator T() const
+		{
+			std::stringstream ss(_value);
+            if constexpr(std::is_same_v<T, std::string>)
+                return ss.str();
+			T convertedValue;
+
+            if(ss >> convertedValue) return convertedValue;
+            else throw CONVERSION_EXCEPTION;
+		}
 	};
 
 	class Properties
@@ -81,18 +94,18 @@ namespace utils
 
 		inline bool str_alnum(const std::string& str)
 		{
-			return find_if(str.begin(), str.end(), 
+			return find_if(str.begin(), str.end(),
 				[](char c) { return !(isalnum(c) || (c == ' ')); }) == str.end();
 		}
 
 		inline bool str_alpha(const std::string& str)
 		{
-			return find_if(str.begin(), str.end(), 
+			return find_if(str.begin(), str.end(),
 				[](char c) { return !(isalpha(c) || (c == ' ')); }) == str.end();
 		}
 
 	public:
-		Properties(int);
+		explicit Properties(int);
 		Properties(const char*, int);
 		virtual ~Properties(void);
 
@@ -101,22 +114,10 @@ namespace utils
 		void Write(const char*);
 
 		void OpenPropFile(const char*);
-		std::string Get(const std::string&, const std::string&);
 		void Set(const std::string&, const std::string&);
+		Value Get(const std::string&, const std::string&);
 
-		int Get(const std::string&, int);
-		void Set(const std::string&, int);
-		unsigned int Get(const std::string&, unsigned int);
-
-		void Set(const std::string&, unsigned int);
-		long Get(const std::string&, long);
-		void Set(const std::string&, long);
-
-		double Get(const std::string&, double);
-		void Set(const std::string&, double);
-		float Get(const std::string&, float);
-
-		void Set(const std::string&, float);
+      std::string GetString(const std::string&, const std::string&);
 	};
 }
 

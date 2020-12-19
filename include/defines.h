@@ -2,7 +2,7 @@
 #define DEFINES_H
 
 #define APP_NAME					"Hexlab"
-#define APP_VER					"2.0"
+#define APP_VER					"2.0.0"
 #define DATA_DIR 					"/apps/hellotechie/hexedit"
 #define LOGO 						"png/labicn.png"
 #define APP_ICON 					"png/labicn.png"

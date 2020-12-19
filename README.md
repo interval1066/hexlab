@@ -12,4 +12,5 @@ The make file wiil be replaced with a proper automake conf collection in time, s
 Update Log:
 
 4/25/2015 - updated to gtkmm 3.0
-
+3/3/2016 - added main hexview widget
+12/19/2020 - much needed refresh, next is make the code much more STL compliant

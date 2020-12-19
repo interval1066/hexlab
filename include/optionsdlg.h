@@ -41,7 +41,8 @@ class OptionsDlg
 		"tempfilespath" };
 
 	std::unordered_map<std::string, Gtk::CheckButton*> checkmap;
-	
+    utils::Properties* _prp;
+
 protected:
 	Glib::RefPtr<Gtk::Builder> _refBuilder;
 	Glib::RefPtr<Gtk::ToggleAction> _togBackup;
@@ -51,7 +52,7 @@ protected:
 	Gtk::Dialog* pDialog;
 	Gtk::Button* pOK;
 
-	Gtk::Button* pCancel, *pImportFrom, * pOpenFrom, * pTempFiles;
+	Gtk::Button* pCancel, * pImportFrom, * pOpenFrom, * pTempFiles;
 	Gtk::CheckButton* pChkBakup, * pCheck, * pCheck2, * pCheck3, * pCheck4,
 		* pCheck5, * pCheck6, * pCheck7, * pCheck8, * pCheck9, * pCheck10,
 		* pCheck11, * pCheck12, * pCheck13;
@@ -67,9 +68,8 @@ protected:
 	void on_select_tempfiles(void);
 
 public:
-	OptionsDlg(utils::Properties*);
+	explicit OptionsDlg(utils::Properties*);
 	virtual ~OptionsDlg();
-	utils::Properties* _prp;
 };
 
 #endif

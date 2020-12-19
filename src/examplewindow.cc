@@ -1,21 +1,3 @@
-//$Id: examplewindow.cc 836 2007-05-09 03:02:38Z jjongsma $ -*- c++ -*-
-
-/* gtkmm example Copyright (C) 2002 gtkmm development team
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2
- * as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- */
-
 #include <gtkmm.h>
 #include <iostream>
 #include <fstream>
@@ -25,12 +7,17 @@
 #include <cstring>
 #include <dirent.h>
 #include <utils/properties.h>
+#include <glib.h>
 #include <glibmm/ustring.h>
 #include <glibmm/refptr.h>
 #include <giomm/file.h>
+#include <gtkmm/cssprovider.h>
+#include <gdkmm/display.h>
+#include <gdkmm/screen.h>
 #include <ui.inc>
 #include <iomanip>
 #include "examplewindow.h"
+#include "ui/hextextview.h"
 #include <project/project.h>
 
 using namespace std;
@@ -41,37 +28,31 @@ using namespace Gio;
 
 Gtk::Window* ExampleWindow::_pAbout = 0;
 
-ExampleWindow::ExampleWindow() : _app(NULL)
+ExampleWindow::ExampleWindow() : _app(nullptr)
 {
 	_app = new APP_DETAIL;
 	_app->tools = new DETAIL_WINDOWS;
 	_app->path = Glib::get_user_data_dir();
-#ifdef _DEBUG
-	g_print("%s", _app->path.c_str());
-#endif
+
 	_app->path.append("/hexlab");
 	_app->app_file = _app->path + "/hexlab.prp";
 	_app->res_path = "/usr/share/hexlab";
-
-	try {
-		_app->props = new Properties(_app->app_file.c_str(),
-			MODE::PRP_READWRITE);
-	}
-	catch(PropException* e) { create_props_file(); }
+	if(!Glib::file_test(_app->app_file.c_str(), Glib::FILE_TEST_EXISTS))
+        create_props_file();
+    _app->props = new Properties(_app->app_file.c_str(), MODE::PRP_READWRITE);
 	get_window_geometry();
-
 	set_title(APP_NAME);
 	set_border_width(1);
 	add_iconset();
 
-	Glib::RefPtr<Gtk::Builder> _refBuilder = Gtk::Builder::create();  
+	Glib::RefPtr<Gtk::Builder> _refBuilder = Gtk::Builder::create();
 	_refActionGroup = Gtk::ActionGroup::create();
 	_refActionGroup->add(Gtk::Action::create("FileMenu", "_File"));
 
 	_refActionGroup->add(Gtk::Action::create("FileOpen",
 		Gtk::Stock::OPEN, "_Open", "Open an existing document"),
       sigc::mem_fun(*this, &ExampleWindow::on_file_open));
-	 
+
 	_refActionGroup->add(Gtk::Action::create("FileNew",
 		Gtk::Stock::NEW, "_New", "Create a new document"),
 		sigc::mem_fun(*this, &ExampleWindow::on_menu_file_new_generic));
@@ -117,7 +98,7 @@ ExampleWindow::ExampleWindow() : _app(NULL)
 	_refActionGroup->add(Gtk::Action::create("RedoEdit",
 		Gtk::Stock::REDO, "_Redo last action", "Redo the last action"),
 		sigc::mem_fun(*this, &ExampleWindow::on_menu_others));
-	 
+
 	_refActionGroup->add(Gtk::Action::create("EditCopy",
 		Gtk::Stock::COPY, "_Copy", "Copy data into edit buffer"),
 		sigc::mem_fun(*this, &ExampleWindow::on_menu_others));
@@ -155,7 +136,7 @@ ExampleWindow::ExampleWindow() : _app(NULL)
 
 	_refActionGroup->add(_refChoiceTwo,
 		sigc::mem_fun(*this, &ExampleWindow::on_menu_choices_two));
-	
+
 	_refActionGroup->add(Gtk::Action::create("FileOffsetMenu",
 		"_File Offset"));
 	Gtk::RadioAction::Group group_offset;
@@ -171,26 +152,22 @@ ExampleWindow::ExampleWindow() : _app(NULL)
 		sigc::mem_fun(*this, &ExampleWindow::on_menu_choices_two));
 
 	bool bTest;
-	(_app->props->Get("toolbar", 1) == 1)? bTest = true : bTest = false;
+	(static_cast<bool>(_app->props->Get("importfrom", "0")))? bTest = true : bTest = false;
 
 	_refActionGroup->add(Gtk::ToggleAction::create("ShowToolbar",
 		"Show Toolbar", "Toggles display of the toolbar", bTest),
 		sigc::mem_fun(*this, &ExampleWindow::on_toggle_toolbar));
-	 
-	/*_refToolbar =
-		Glib::RefPtr<Gtk::ToggleAction>::cast_static(
-		_refActionGroup->get_action("ShowToolbar"));*/
 
-	(_app->props->Get("inspect", 1) == 1)? bTest = true : bTest = false;
+	(static_cast<bool>(_app->props->Get("inspect", "1")))? bTest = true : bTest = false;
 	_refActionGroup->add(Gtk::ToggleAction::create("ShowInspector",
 		"Data Inspector", "Toggles data inspector view", bTest),
 		sigc::mem_fun(*this, &ExampleWindow::on_toggle_datains));
 
-	(_app->props->Get("results", 1) == 1)? bTest = true : bTest = false;
+	(static_cast<bool>(_app->props->Get("results", "1")))? bTest = true : bTest = false;
 	_refActionGroup->add(Gtk::ToggleAction::create("ShowResults",
 		"Results Window", "Toggles results window view", bTest),
 		sigc::mem_fun(*this, &ExampleWindow::on_toggle_results));
-	 
+
 	_refActionGroup->add(Gtk::Action::create("OptOptions",
 		Gtk::Stock::PREFERENCES, "_Preferences",
 		"Presents the preferences dialog"),
@@ -251,11 +228,11 @@ ExampleWindow::ExampleWindow() : _app(NULL)
 	_refActionGroup->add(Gtk::Action::create("or", "OR...",
 		"Perform a logical OR on the selected bits"),
 		sigc::mem_fun(*this, &ExampleWindow::on_menu_others));
- 
+
 	_refActionGroup->add(Gtk::Action::create("xor", "XOR...",
 		"Perform a logical XOR on the selected bits"),
 		sigc::mem_fun(*this, &ExampleWindow::on_menu_others));
-	 
+
 	_refActionGroup->add(Gtk::Action::create("change",
 		"Change sign...", "Change the sign bit of the selected bit group"),
 		sigc::mem_fun(*this, &ExampleWindow::on_menu_others));
@@ -355,7 +332,7 @@ ExampleWindow::ExampleWindow() : _app(NULL)
 		"_Recompare", "Recmpare files"),
 		sigc::mem_fun(*this, &ExampleWindow::on_menu_others));
 
-  	_refActionGroup->add(Gtk::Action::create("clrres", 
+  	_refActionGroup->add(Gtk::Action::create("clrres",
 		"C_lear Results", "Clear the previous compare results"),
 		sigc::mem_fun(*this, &ExampleWindow::on_menu_others));
 
@@ -441,7 +418,7 @@ ExampleWindow::ExampleWindow() : _app(NULL)
 #else
 	unique_ptr<Glib::Error> ex;
 	_refUIManager->add_ui_from_string(ui_info, ex);
-	
+
 	if(ex.get())
 		cerr << "building menus failed: " <<  ex->what();
 #endif
@@ -457,22 +434,13 @@ ExampleWindow::ExampleWindow() : _app(NULL)
 	_Notebook.set_tab_pos(Gtk::POS_BOTTOM);
 	_VPaned.add1(_Notebook);
 
-	_VPaned.add2(_HPaned);	 
+	_VPaned.add2(_HPaned);
 	_HPaned.add1(_MessageText);
 	_HPaned.add2(_MessageText3);
 
 	_Box.pack_start(_VPaned);
 	_Box.pack_start(_HPaned);
-	_SBox.pack_start(_align);
-	//_SBox.pack_start(_statusbar, Gtk::PACK_EXPAND_WIDGET);
-	_align.add(_statusbar);
-	_align.set(Gtk::ALIGN_START, Gtk::ALIGN_CENTER, 2.0, 1.0);
-
-	_SBox.pack_start(_align2);
-	_align2.add(_statusbar2);
-	_align2.set(Gtk::ALIGN_START, Gtk::ALIGN_CENTER, 1.0, 1.0);
-	//_SBox.pack_start(_space, Gtk::PACK_EXPAND_WIDGET);
-	_Box.pack_start(_SBox, Gtk::PACK_SHRINK);
+	_Box.pack_start(_statusbar, Gtk::PACK_SHRINK);
 
 	show_all_children();
 	init_window_state();
@@ -518,11 +486,6 @@ ExampleWindow::~ExampleWindow()
 		for(it = _app->prj.begin(); it != _app->prj.end(); ++it)
 			delete *it;
 	}
-	if(_app) {
-		delete _app;
-		_app = NULL;
-	}
-	return;
 }
 
 void
@@ -547,7 +510,7 @@ ExampleWindow::write_mru()
 	}
 	on_pages_mru();
 }
-		
+
 void
 ExampleWindow::read_mru()
 {
@@ -617,7 +580,6 @@ ExampleWindow::init_window_state()
 void
 ExampleWindow::on_menu_file_quit()
 {
-	hide();
 	Gtk::Main::quit();
 }
 
@@ -697,32 +659,37 @@ ExampleWindow::on_app_about()
 	else {
 		if(_pAbout) {
 			delete _pAbout;
-			_pAbout = NULL;
+			_pAbout = nullptr;
 		}
 
 		Gtk::AboutDialog* pDerived = new Gtk::AboutDialog;
 		_pAbout = pDerived;
-		
-		pDerived->set_name(APP_NAME);		
+		pDerived->set_transient_for(*this);
+
+		pDerived->set_program_name(APP_NAME);
 		pDerived->set_version(APP_VER);
 		pDerived->set_logo(Gdk::Pixbuf::create_from_file(_app->res_path +
 		    "/res/labicn.png"));
 
-		pDerived->set_copyright("Copyright © 2013-15 Tim O'Neil");
+		pDerived->set_copyright("Copyright © 2013-2020 Tim O'Neil");
 		pDerived->set_comments("Based on Hex Workshop by BreakPoint Software");
-		    
+		pDerived->set_comments("Just an attempt to make a full-featured GTKMM application");
+		pDerived->set_license("LGPL");
+
 		pDerived->set_website("http://www.bpsoft.com/");
 		pDerived->set_website_label("BreakPoint Software Website");
 		if(_vAuth.empty())
 			_vAuth.push_back("Tim O'Neil <interval1066@gmail.com>");
-		
+
 		pDerived->set_authors(_vAuth);
 		pDerived->set_documenters(_vAuth);
 		_pAbout->signal_hide().connect(sigc::mem_fun(*this,
 		    &ExampleWindow::on_about_close));
+
+		pDerived->show_all_children();
 		static_cast<Gtk::Dialog*>(_pAbout)->run();
-		    
 		_app->tools->bAboutShown = true;
+
 		_pAbout->hide();
 	}
 }
@@ -732,7 +699,7 @@ ExampleWindow::about_uri_cb(Gtk::AboutDialog &about,
 	const Glib::ustring &link)
 {
 	GError* gerror = 0;
-	gtk_show_uri(0, "http://www.bpsoft.com/",
+	gtk_show_uri_on_window(nullptr, "http://www.bpsoft.com/",
 		GDK_CURRENT_TIME, &gerror);
 }
 
@@ -746,7 +713,7 @@ void
 ExampleWindow::on_toggle_toolbar()
 {
 	Gtk::Widget* pToolbar = _refUIManager->get_widget("/ToolBar");
-	 
+
 	if(pToolbar->get_visible()) {
 		pToolbar->hide();
 		_app->tools->nToolbar = 0;
@@ -759,7 +726,7 @@ ExampleWindow::on_toggle_toolbar()
 
 void
 ExampleWindow::on_toggle_datains()
-{	 
+{
 	if(_MessageText.get_visible()) {
 		_MessageText.hide();
 		_app->tools->nShowInspector = 0;
@@ -781,7 +748,7 @@ ExampleWindow::on_toggle_results()
 	else {
 		_MessageText3.show();
 		_app->tools->nShowResults = 1;
-	}	 
+	}
 	hide_hpane();
 }
 
@@ -848,51 +815,56 @@ ExampleWindow::add_iconset()
 void
 ExampleWindow::write_window_geometry()
 {
- 	_app->props->Set("windowW", _app->tools->winW);
-	_app->props->Set("windowH", _app->tools->winH);
+ 	_app->props->Set("windowW", to_string(_app->tools->winW));
+	_app->props->Set("windowH", to_string(_app->tools->winH));
 
-	_app->props->Set("inspect", _app->tools->nShowInspector);
-	_app->props->Set("results", _app->tools->nShowResults);
-	_app->props->Set("toolbar", _app->tools->nToolbar);
+	_app->props->Set("inspect", to_string(_app->tools->nShowInspector));
+	_app->props->Set("results", to_string(_app->tools->nShowResults));
+	_app->props->Set("toolbar", to_string(_app->tools->nToolbar));
 
-	_app->props->Set("hpane", _app->tools->nHPane);
-	_app->props->Set("vpane", _app->tools->nVPane);
+	_app->props->Set("hpane", to_string(_app->tools->nHPane));
+	_app->props->Set("vpane", to_string(_app->tools->nVPane));
 	_app->props->Write(_app->app_file.c_str());
 }
 
 void
 ExampleWindow::get_window_geometry()
 {
-	_app->tools->winW = _app->props->Get("windowW", 1450);
-	_app->tools->winH = _app->props->Get("windowH", 500);
+	_app->tools->winW = static_cast<int>(_app->props->Get("windowW", "1450"));
+	_app->tools->winH = static_cast<int>(_app->props->Get("windowH", "500"));
 
-	_app->tools->nShowInspector = _app->props->Get("inspect", 1);
-	_app->tools->nShowResults = _app->props->Get("results", 1);
-	_app->tools->nToolbar = _app->props->Get("toolbar", 1);
+	_app->tools->nShowInspector = static_cast<int>(_app->props->Get("inspect", "1"));
+	_app->tools->nShowResults = static_cast<int>(_app->props->Get("results", "1"));
+	_app->tools->nToolbar = static_cast<int>(_app->props->Get("toolbar", "1"));
 
-	_app->tools->nHPane = _app->props->Get("hpane", 50);
-	_app->tools->nVPane = _app->props->Get("vpane", 50);
+	_app->tools->nHPane = static_cast<int>(_app->props->Get("hpane", "50"));
+	_app->tools->nVPane = static_cast<int>(_app->props->Get("vpane", "50"));
 }
 
-void
+int
 ExampleWindow::create_props_file()
 {
-	ofstream pfile(_app->app_file.c_str());
-	pfile << "# Hexlab properties file\n";
-	pfile << "########################\n";
+    if(mkdir(_app->path.c_str(), 0766) == 0) {
+        ofstream pfile(_app->app_file.c_str());
+        pfile << "# Hexlab properties file\n";
+        pfile << "########################\n";
 
-	pfile << "toolbar=1\n";
-	pfile << "inspect=1\n";
-	pfile << "results=1\n";
+        pfile << "toolbar=1\n";
+        pfile << "inspect=1\n";
+        pfile << "results=1\n";
 
-	pfile << "windowW=450\n";
-	pfile << "windowH=400\n";
-	pfile << "hpane=416\n";
+        pfile << "windowW=450\n";
+        pfile << "windowH=400\n";
+        pfile << "hpane=416\n";
 
-	pfile << "vpane=410\n";
-	pfile.close();
-	_app->props = new Properties(_app->app_file.c_str(),
-		MODE::PRP_READWRITE);
+        pfile << "vpane=410\n";
+        pfile.close();
+        _app->props = new Properties(_app->app_file.c_str(),
+            MODE::PRP_READWRITE);
+
+        return 0;
+    }
+    return -1;
 }
 
 void
@@ -915,7 +887,7 @@ ExampleWindow::on_file_open()
 	if(dialog.run() == Gtk::RESPONSE_APPLY) {
 		vector<string> files(dialog.get_filenames());
 
-		for(vector<string>::iterator it = files.begin(); 
+		for(vector<string>::iterator it = files.begin();
 			it != files.end(); ++it) {
 			HEXFILE* p = new HEXFILE;
 
@@ -932,15 +904,54 @@ ExampleWindow::add_file(const Glib::ustring& text)
 {
 	Glib::ustring sLab = text.substr(text.find_last_of("/") + 1, text.length());
 	if(!show_page(sLab)) {
-		Gtk::Label* pLabel;
+		Glib::RefPtr<Gtk::TextBuffer> tbuf = Gtk::TextBuffer::create();
 
-		pLabel = manage(new Gtk::Label(text));
-		_Notebook.append_page(*pLabel, sLab);
+		Glib::RefPtr<Gtk::TextBuffer> tbuf2 = Gtk::TextBuffer::create();
+		Glib::RefPtr<Gtk::TextBuffer> tbuf3 = Gtk::TextBuffer::create();
+		Gtk::HPaned* hpaned = Gtk::manage(new Gtk::HPaned);
 
+		Gtk::HPaned* hpaned2 = Gtk::manage(new Gtk::HPaned);
+  		Gtk::ScrolledWindow* scwin = Gtk::manage(new Gtk::ScrolledWindow);
+		Gtk::TextView* textview = Gtk::manage(new Gtk::TextView);
+
+		Gtk::TextView* textview2 = Gtk::manage(new Gtk::TextView);
+		ui::HexTextView* hexview = Gtk::manage(new ui::HexTextView);
+		hpaned->add(*textview);
+
+		textview->override_font(Pango::FontDescription("Monospace Bold 12"));
+		textview->set_editable(false);
+		textview->set_cursor_visible(false);
+
+		textview->override_background_color(Gdk::RGBA("lightgray"), Gtk::STATE_FLAG_NORMAL);
+		hpaned2->add(*hexview);
+		hexview->override_font(Pango::FontDescription("Monospace Bold 12"));
+
+		hexview->set_overwrite(true);
+		hexview->set_editable(true);
+		hexview->override_background_color(Gdk::RGBA("rgba(255, 255, 255, .5)"));
+
+		hpaned2->add(*textview2);
+		textview2->override_font(Pango::FontDescription("Monospace Bold 12"));
+		hpaned->add(*hpaned2);
+
+		tbuf->set_text("This is the text from TextBuffer #1.");
+		textview->set_buffer(tbuf);
+		tbuf2->set_text("This is the text from TextBuffer #1.");
+
+		hexview->set_buffer(tbuf2);
+		tbuf3->set_text("This is the text from TextBuffer #1.");
+		textview2->set_buffer(tbuf3);
+
+  		scwin->set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
+  		scwin->set_border_width(3);
+  		scwin->set_shadow_type(Gtk::SHADOW_ETCHED_IN);
+
+  		scwin->add(*hpaned);
+		_Notebook.append_page(*scwin, sLab);
 		_Notebook.show_all();
+
 		_Notebook.set_current_page(-1);
 		manage_mru(text);
-
 		show_page(sLab);
 	}
 	on_pages_mru();
@@ -952,9 +963,7 @@ ExampleWindow::on_menu_close()
 	if(_Notebook.get_n_pages() > 0) {
 		string sLab = _Notebook.get_tab_label_text(*(_Notebook.get_nth_page(_Notebook.get_current_page())));
 
-		if(_Notebook.get_n_pages() == 1)
-			_Notebook.remove_page(-1);
-		else
+		(_Notebook.get_n_pages() == 1)? _Notebook.remove_page(-1) :
 			_Notebook.remove_page(_Notebook.get_current_page());
 
 		vector<project::HEXFILE*>::iterator it;
@@ -968,7 +977,7 @@ ExampleWindow::on_menu_close()
 void
 ExampleWindow::on_pages_changed(Gtk::Widget* page, guint page_num)
 {
-	Gtk::Widget* fileClose = 
+	Gtk::Widget* fileClose =
 		_refUIManager->get_widget("/ui/MenuBar/FileMenu/FileClose");
 	Gtk::Widget* fileSave =
 		_refUIManager->get_widget("/ui/MenuBar/FileMenu/FileSave");
@@ -1032,19 +1041,19 @@ ExampleWindow::manage_mru(const Glib::ustring& text)
 {
 	bool bFound = false;
 	Gtk::Widget* file[4];
-	
+
 	file[0] = _refUIManager->get_widget("/ui/MenuBar/FileMenu/file1");
 	file[1] = _refUIManager->get_widget("/ui/MenuBar/FileMenu/file2");
 	file[2] = _refUIManager->get_widget("/ui/MenuBar/FileMenu/file3");
 	file[3] = _refUIManager->get_widget("/ui/MenuBar/FileMenu/file4");
-	
+
 	deque<Glib::ustring>::iterator it = _app->mru.begin();
 	for(; it != _app->mru.end(); ++it)
 		if((*it).find(text) != string::npos) bFound = true;
 
 	if(!bFound) {
 		_app->mru.push_front(text);
-		if(_app->mru.size() >= 4) 
+		if(_app->mru.size() >= 4)
 			_app->mru.pop_back();
 		_app->mru.resize(4);
 
@@ -1072,7 +1081,7 @@ void
 ExampleWindow::on_mru(const Glib::ustring& label)
 {
 	Glib::ustring msg;
-	ostringstream os;
+	//ostringstream os;
 	deque<Glib::ustring>::const_iterator it = _app->mru.begin();
 
 	for(; it < _app->mru.end(); ++it) {
@@ -1111,9 +1120,8 @@ ExampleWindow::on_mru_list(Glib::ustring& label)
 bool
 ExampleWindow::show_page(const Glib::ustring& text)
 {
-	//Gtk::Notebook::pages::iterator i;
-	int last_page = _Notebook.get_n_pages();
-	for(int i = 0; i != last_page; i++) {
+	auto last_page = _Notebook.get_n_pages();
+	for(auto i = 0; i != last_page; i++) {
 
 		const Glib::ustring str =
 			_Notebook.get_tab_label_text(*(_Notebook.get_nth_page(i)));
@@ -1198,11 +1206,13 @@ ExampleWindow::on_dropped_file(const Glib::RefPtr<Gdk::DragContext>& context,
 		(selection_data.get_format() == 8)) {
 		vector<Glib::ustring> file_list;
 
- 		file_list = selection_data.get_uris(); 
+ 		file_list = selection_data.get_uris();
 		if(file_list.size() > 0) {
 			const Glib::ustring path = Glib::filename_from_uri(file_list[0]);
-			if(!is_directory(path))
-				add_file(path);
+            if(nullptr != path) {
+    			if(!is_directory(path))
+	    			add_file(path);
+            }
 			context->drag_finish(true, false, time);
 			return;
 		}
@@ -1254,15 +1264,12 @@ ExampleWindow::on_file4_accel()
 bool
 ExampleWindow::is_directory(const Glib::ustring& str)
 {
-   DIR* file = opendir(str.c_str());
-   if(file) {
+	DIR* file = opendir(str.c_str());
+	if(nullptr != file) {
 		closedir(file);
 		return true;
 	}
-   else {
-		closedir(file);
-		return false;
-	}
+	return false;
 }
 
 void
