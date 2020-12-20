@@ -3,9 +3,13 @@ I'm doing this not so much as a nessessary application but as an excersise in ap
 
 In this app I offer a number of windows designs such as a most recently used file list, drag and drop, and other windows innovations. I'd like to offer this app as a model for other desktop apps for linux as the field right now is thin. I really want to offer Linux as a desktop alternative to Windows, especially if your tired of paying the ever-climbing license fees for windows and osx.
 
-After downloading this code on a gnome desktop the only current assumptions are that you have gtkmm-2.4 and sigc++-2.0 installed on your system. Issuing a "make" with those assumptions should result in a usable application framework.
+After downloading this code on a gnome desktop the only current assumptions are that you have gtkmm-3.0 and sigc++-2.0 installed on your system. Issuing a "make" with those assumptions should result in a usable application framework.
 
-The make file wiil be replaced with a proper automake conf collection in time, so this code should really be considered total alpha code. This is really important. If every ready for prime time, it won't be until the code is up-ported to Gnome 3.0, and they way things are going with Gnome, who knows when that will be.
+Features: My own most recent file list, my propeties flat file preferences code.
+
+In lieu of a proper automake tool installation script you'll need to put ./dlgs/Options.glade /usr/share/hexlab, and the copntents of png in /usr/share/hexlab/res. Still to be done is a better, more modular, STL-compliant, design, Gnome lancher.
+
+The make file wiil be replaced with a proper automake conf collection in time, so this code should really be considered total alpha code. This is really important.
 
 ===
 
